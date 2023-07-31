@@ -1,13 +1,21 @@
 package org.springframework.context;
 
 import org.springframework.beans.BeansException;
+import org.springframework.core.metrics.ApplicationStartup;
+
+import java.io.Closeable;
 
 /**
  * @author jjewng
  * @date 2023/05/28
  */
-public interface ConfigurableApplicationContext extends ApplicationContext {
+public interface ConfigurableApplicationContext extends ApplicationContext, Closeable {
 
+	String SHUTDOWN_HOOK_THREAD_NAME = "SpringContextShutdownHook";
+
+	void setApplicationStartup(ApplicationStartup applicationStartup);
+
+	ApplicationStartup getApplicationStartup();
 	/**
 	 * 刷新容器
 	 *
@@ -18,6 +26,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext {
 	/**
 	 * 关闭应用上下文
 	 */
+	@Override
 	void close();
 
 	/**
