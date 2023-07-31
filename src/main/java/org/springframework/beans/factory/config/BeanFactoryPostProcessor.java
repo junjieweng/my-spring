@@ -9,6 +9,7 @@ import org.springframework.beans.factory.ConfigurableListableBeanFactory;
  * @author jjewng
  * @date 2023/05/28
  */
+@FunctionalInterface
 public interface BeanFactoryPostProcessor {
 
 	/**

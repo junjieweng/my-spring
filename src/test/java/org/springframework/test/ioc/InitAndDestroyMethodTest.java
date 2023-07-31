@@ -7,7 +7,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * @author jjewng
  * @date 2023/05/28
  */
-public class InitAndDestoryMethodTest {
+public class InitAndDestroyMethodTest {
 
 	@Test
 	public void testInitAndDestroyMethod() throws Exception {

@@ -1,5 +1,8 @@
 package org.springframework.context.support;
 
+import cn.hutool.core.lang.Assert;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -13,6 +16,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.metrics.ApplicationStartup;
+import org.springframework.core.metrics.StartupStep;
 
 import java.util.Collection;
 import java.util.Map;
@@ -23,40 +28,85 @@ import java.util.Map;
  * @author jjewng
  * @date 2023/05/28
  */
-public abstract class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext {
+public abstract class AbstractApplicationContext extends DefaultResourceLoader
+		implements ConfigurableApplicationContext {
 
 	public static final String APPLICATION_EVENT_MULTICASTER_BEAN_NAME = "applicationEventMulticaster";
 
 	public static final String CONVERSION_SERVICE_BEAN_NAME = "conversionService";
 
+	protected final Log logger = LogFactory.getLog(getClass());
+
+	private final Object startupShutdownMonitor = new Object();
+
+	private Thread shutdownHook;
+
 	private ApplicationEventMulticaster applicationEventMulticaster;
+
+	private ApplicationStartup applicationStartup = ApplicationStartup.DEFAULT;
+
+	@Override
+	public void setApplicationStartup(ApplicationStartup applicationStartup) {
+		Assert.notNull(applicationStartup, "ApplicationStartup must not be null");
+		this.applicationStartup = applicationStartup;
+	}
+
+	@Override
+	public ApplicationStartup getApplicationStartup() {
+		return this.applicationStartup;
+	}
 
 	@Override
 	public void refresh() throws BeansException {
-		//创建BeanFactory，并加载BeanDefinition
-		refreshBeanFactory();
-		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		synchronized (this.startupShutdownMonitor) {
+			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-		//添加ApplicationContextAwareProcessor，让继承自ApplicationContextAware的bean能感知bean
-		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+			prepareRefresh();
 
-		//在bean实例化之前，执行BeanFactoryPostProcessor
-		invokeBeanFactoryPostProcessors(beanFactory);
+			//创建BeanFactory，并加载BeanDefinition
+			refreshBeanFactory();
+			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 
-		//BeanPostProcessor需要提前与其他bean实例化之前注册
-		registerBeanPostProcessors(beanFactory);
+			//添加ApplicationContextAwareProcessor，让继承自ApplicationContextAware的bean能感知bean
+			beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
-		//初始化事件发布者
-		initApplicationEventMulticaster();
+			try {
+				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 
-		//注册事件监听器
-		registerListeners();
+				//在bean实例化之前，执行BeanFactoryPostProcessor
+				invokeBeanFactoryPostProcessors(beanFactory);
 
-		//注册类型转换器和提前实例化单例bean
-		finishBeanFactoryInitialization(beanFactory);
+				//BeanPostProcessor需要提前与其他bean实例化之前注册
+				registerBeanPostProcessors(beanFactory);
+				beanPostProcess.end();
 
-		//发布容器刷新完成事件
-		finishRefresh();
+				//初始化事件发布者
+				initApplicationEventMulticaster();
+
+				//注册事件监听器
+				registerListeners();
+
+				//注册类型转换器和提前实例化单例bean
+				finishBeanFactoryInitialization(beanFactory);
+
+				//发布容器刷新完成事件
+				finishRefresh();
+			}
+			catch (Exception ex) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception encountered during context initialization - " +
+							"cancelling refresh attempt: " + ex);
+				}
+				// TODO: 2023/7/31 执行销毁 bean 等操作
+				throw ex;
+			} finally {
+				contextRefresh.end();
+			}
+		}
+	}
+
+	protected void prepareRefresh() {
+
 	}
 
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
@@ -164,18 +214,37 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
 
 	public abstract ConfigurableListableBeanFactory getBeanFactory();
 
-	public void close() {
-		doClose();
+	@Override
+	public void registerShutdownHook() {
+		if (shutdownHook == null) {
+			// No shutdown hook registered yet.
+			this.shutdownHook = new Thread(SHUTDOWN_HOOK_THREAD_NAME) {
+				@Override
+				public void run() {
+					synchronized (startupShutdownMonitor) {
+						doClose();
+					}
+				}
+			};
+			Runtime.getRuntime().addShutdownHook(this.shutdownHook);
+		}
 	}
 
-	public void registerShutdownHook() {
-		Thread shutdownHook = new Thread() {
-			public void run() {
-				doClose();
+	@Override
+	public void close() {
+		synchronized (this.startupShutdownMonitor) {
+			doClose();
+			// If we registered a JVM shutdown hook, we don't need it anymore now:
+			// We've already explicitly closed the context.
+			if (this.shutdownHook != null) {
+				try {
+					Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+				}
+				catch (IllegalStateException ex) {
+					// ignore - VM is already shutting down
+				}
 			}
-		};
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
-
+		}
 	}
 
 	protected void doClose() {
