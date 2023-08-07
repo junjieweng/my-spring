@@ -28,8 +28,8 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 	}
 
 	@Override
-	public PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName) throws BeansException {
-		//处理@Value注解
+	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+		// 处理 @Value 注解
 		Class<?> clazz = bean.getClass();
 		Field[] fields = clazz.getDeclaredFields();
 		for (Field field : fields) {
@@ -38,7 +38,7 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 				Object value = valueAnnotation.value();
 				value = beanFactory.resolveEmbeddedValue((String) value);
 
-				//类型转换
+				// 类型转换
 				Class<?> sourceType = value.getClass();
 				Class<?> targetType = (Class<?>) TypeUtil.getType(field);
 				ConversionService conversionService = beanFactory.getConversionService();
@@ -52,7 +52,7 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 			}
 		}
 
-		//处理@Autowired注解
+		// 处理 @Autowired 注解
 		for (Field field : fields) {
 			Autowired autowiredAnnotation = field.getAnnotation(Autowired.class);
 			if (autowiredAnnotation != null) {
@@ -71,6 +71,12 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 		}
 
 		return pvs;
+	}
+
+	@Deprecated
+	@Override
+	public PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+		return postProcessProperties(pvs, bean, beanName);
 	}
 
 	@Override

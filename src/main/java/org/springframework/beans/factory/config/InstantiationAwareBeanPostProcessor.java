@@ -38,8 +38,16 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @return
 	 * @throws BeansException
 	 */
-	PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName)
-			throws BeansException;
+	@Deprecated
+	default PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName)
+			throws BeansException {
+		return pvs;
+	}
+
+	default PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
+			throws BeansException {
+		return null;
+	}
 
 	/**
 	 * 提前暴露bean
