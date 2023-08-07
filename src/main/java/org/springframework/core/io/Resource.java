@@ -9,8 +9,6 @@ import java.io.InputStream;
  * @author jjewng
  * @date 2023/05/28
  */
-public interface Resource {
-
-	InputStream getInputStream() throws IOException;
+public interface Resource extends InputStreamSource{
 
 }

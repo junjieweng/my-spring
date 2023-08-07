@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 
 /**
  * @author jjweng
- * @date: 2023/7/31
+ * @date 2023/7/31
  */
 public interface StartupStep {
 
