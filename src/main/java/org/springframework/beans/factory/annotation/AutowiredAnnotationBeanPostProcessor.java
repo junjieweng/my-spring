@@ -57,9 +57,9 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 			Autowired autowiredAnnotation = field.getAnnotation(Autowired.class);
 			if (autowiredAnnotation != null) {
 				Class<?> fieldType = field.getType();
-				String dependentBeanName = null;
+				String dependentBeanName;
 				Qualifier qualifierAnnotation = field.getAnnotation(Qualifier.class);
-				Object dependentBean = null;
+				Object dependentBean;
 				if (qualifierAnnotation != null) {
 					dependentBeanName = qualifierAnnotation.value();
 					dependentBean = beanFactory.getBean(dependentBeanName, fieldType);
