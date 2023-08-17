@@ -35,11 +35,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return beanDefinitionMap.containsKey(beanName);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> Map<String, T> getBeansOfType(Class<T> type) throws BeansException {
 		Map<String, T> result = new HashMap<>();
 		beanDefinitionMap.forEach((beanName, beanDefinition) -> {
-			Class beanClass = beanDefinition.getBeanClass();
+			Class<?> beanClass = beanDefinition.getBeanClass();
 			if (type.isAssignableFrom(beanClass)) {
 				T bean = (T) getBean(beanName);
 				result.put(beanName, bean);
@@ -51,7 +52,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public <T> T getBean(Class<T> requiredType) throws BeansException {
 		List<String> beanNames = new ArrayList<>();
 		for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
-			Class beanClass = entry.getValue().getBeanClass();
+			Class<?> beanClass = entry.getValue().getBeanClass();
 			if (requiredType.isAssignableFrom(beanClass)) {
 				beanNames.add(entry.getKey());
 			}
@@ -67,7 +68,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Override
 	public String[] getBeanDefinitionNames() {
 		Set<String> beanNames = beanDefinitionMap.keySet();
-		return beanNames.toArray(new String[beanNames.size()]);
+		return beanNames.toArray(new String[0]);
 	}
 
 	@Override

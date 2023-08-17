@@ -1,6 +1,5 @@
 package org.springframework.aop;
 
-import org.aopalliance.intercept.MethodInterceptor;
 import org.springframework.aop.framework.AdvisorChainFactory;
 import org.springframework.aop.framework.DefaultAdvisorChainFactory;
 
@@ -16,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AdvisedSupport {
 
-	//是否使用cglib代理
+	// 是否使用 cglib 代理
 	private boolean proxyTargetClass = true;
 
 	private TargetSource targetSource;
@@ -33,6 +32,7 @@ public class AdvisedSupport {
 	public AdvisedSupport() {
 		this.methodCache = new ConcurrentHashMap<>(32);
 	}
+
 	public boolean isProxyTargetClass() {
 		return proxyTargetClass;
 	}
@@ -69,7 +69,7 @@ public class AdvisedSupport {
 	 * 用来返回方法的拦截器链
 	 */
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, Class<?> targetClass) {
-		Integer cacheKey=method.hashCode();
+		Integer cacheKey = method.hashCode();
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(

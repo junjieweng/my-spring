@@ -45,13 +45,13 @@ public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPos
 	}
 
 	protected Object wrapIfNecessary(Object bean, String beanName) {
-		//避免死循环
+		// 避免死循环
 		if (isInfrastructureClass(bean.getClass())) {
 			return bean;
 		}
 
-		Collection<AspectJExpressionPointcutAdvisor> advisors = beanFactory.getBeansOfType(AspectJExpressionPointcutAdvisor.class)
-				.values();
+		Collection<AspectJExpressionPointcutAdvisor> advisors =
+				beanFactory.getBeansOfType(AspectJExpressionPointcutAdvisor.class).values();
 		try {
 			ProxyFactory proxyFactory = new ProxyFactory();
 			for (AspectJExpressionPointcutAdvisor advisor : advisors) {
