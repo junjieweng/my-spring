@@ -27,27 +27,29 @@ public class ReflectiveMethodInvocation implements MethodInvocation {
 
 	private int currentInterceptorIndex = -1;
 
-	public ReflectiveMethodInvocation(Object proxy,Object target, Method method, Object[] arguments,Class<?> targetClass,List<Object> chain) {
-		this.proxy=proxy;
+	public ReflectiveMethodInvocation(
+			Object proxy, Object target, Method method, Object[] arguments,
+			Class<?> targetClass, List<Object> chain) {
+		this.proxy = proxy;
 		this.target = target;
 		this.method = method;
 		this.arguments = arguments;
-		this.targetClass=targetClass;
-		this.interceptorsAndDynamicMethodMatchers=chain;
+		this.targetClass = targetClass;
+		this.interceptorsAndDynamicMethodMatchers = chain;
 	}
 
 	@Override
 	public Object proceed() throws Throwable {
-		// 初始currentInterceptorIndex为-1，每调用一次proceed就把currentInterceptorIndex+1
+		// 初始 currentInterceptorIndex 为 -1，每调用一次 proceed 就把 currentInterceptorIndex 加 1
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
 			// 当调用次数 = 拦截器个数时
-			// 触发当前method方法
+			// 触发当前 method 方法
 			return method.invoke(this.target, this.arguments);
 		}
 
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
-		// 普通拦截器，直接触发拦截器invoke方法
+		// 普通拦截器，直接触发拦截器 invoke 方法
 		return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 	}
 
