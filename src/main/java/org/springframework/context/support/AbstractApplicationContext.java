@@ -63,33 +63,33 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			prepareRefresh();
 
-			//创建BeanFactory，并加载BeanDefinition
+			// 创建 BeanFactory，并加载 BeanDefinition
 			refreshBeanFactory();
 			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 
-			//添加ApplicationContextAwareProcessor，让继承自ApplicationContextAware的bean能感知bean
+			// 添加 ApplicationContextAwareProcessor，让继承自 ApplicationContextAware 的 bean 能感知 bean
 			beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 			try {
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 
-				//在bean实例化之前，执行BeanFactoryPostProcessor
+				// 在 bean 实例化之前，执行 BeanFactoryPostProcessor
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				//BeanPostProcessor需要提前与其他bean实例化之前注册
+				// BeanPostProcessor 需要提前于其他 bean 实例化之前注册
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
-				//初始化事件发布者
+				// 初始化事件发布器
 				initApplicationEventMulticaster();
 
-				//注册事件监听器
+				// 注册事件监听器
 				registerListeners();
 
-				//注册类型转换器和提前实例化单例bean
+				// 注册类型转换器和提前实例化单例 bean
 				finishBeanFactoryInitialization(beanFactory);
 
-				//发布容器刷新完成事件
+				// 发布容器刷新完成事件
 				finishRefresh();
 			}
 			catch (Exception ex) {
@@ -110,7 +110,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		//设置类型转换器
+		// 设置类型转换器
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME)) {
 			Object conversionService = beanFactory.getBean(CONVERSION_SERVICE_BEAN_NAME);
 			if (conversionService instanceof ConversionService) {
@@ -118,7 +118,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		//提前实例化单例bean
+		// 提前实例化单例 bean
 		beanFactory.preInstantiateSingletons();
 	}
 

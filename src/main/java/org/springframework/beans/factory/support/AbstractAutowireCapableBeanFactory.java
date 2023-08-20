@@ -51,7 +51,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return bean;
 	}
 
-	protected Object applyBeanPostProcessorsBeforeInstantiation(Class beanClass, String beanName) {
+	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
 		for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
 			if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
 				Object result = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessBeforeInstantiation(beanClass, beanName);
@@ -157,14 +157,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 注册有销毁方法的bean，即bean继承自DisposableBean或有自定义的销毁方法
+	 * 注册有销毁方法的 bean，即 bean 继承自 DisposableBean 或有自定义的销毁方法
 	 *
 	 * @param beanName
 	 * @param bean
 	 * @param beanDefinition
 	 */
 	protected void registerDisposableBeanIfNecessary(String beanName, Object bean, BeanDefinition beanDefinition) {
-		//只有singleton类型bean会执行销毁方法
+		// 只有 singleton 类型 bean 会执行销毁方法
 		if (beanDefinition.isSingleton()) {
 			if (bean instanceof DisposableBean || StrUtil.isNotEmpty(beanDefinition.getDestroyMethodName())) {
 				registerDisposableBean(beanName, new DisposableBeanAdapter(bean, beanName, beanDefinition));
@@ -173,7 +173,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 实例化bean
+	 * 实例化 bean
 	 *
 	 * @param beanDefinition
 	 * @return
@@ -183,7 +183,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 为bean填充属性
+	 * 为 bean 填充属性
 	 *
 	 * @param bean
 	 * @param beanDefinition
@@ -194,11 +194,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				String name = propertyValue.getName();
 				Object value = propertyValue.getValue();
 				if (value instanceof BeanReference) {
-					// beanA依赖beanB，先实例化beanB
+					// beanA 依赖 beanB，先实例化 beanB
 					BeanReference beanReference = (BeanReference) value;
 					value = getBean(beanReference.getBeanName());
 				} else {
-					//类型转换
+					// 类型转换
 					Class<?> sourceType = value.getClass();
 					Class<?> targetType = (Class<?>) TypeUtil.getFieldType(bean.getClass(), name);
 					ConversionService conversionService = getConversionService();
@@ -209,7 +209,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					}
 				}
 
-				//通过反射设置属性
+				// 通过反射设置属性
 				BeanUtil.setFieldValue(bean, name, value);
 			}
 		} catch (Exception ex) {
@@ -222,7 +222,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			((BeanFactoryAware) bean).setBeanFactory(this);
 		}
 
-		//执行BeanPostProcessor的前置处理
+		// 执行 BeanPostProcessor 的前置处理
 		Object wrappedBean = applyBeanPostProcessorsBeforeInitialization(bean, beanName);
 
 		try {
@@ -231,7 +231,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throw new BeansException("Invocation of init method of bean[" + beanName + "] failed", ex);
 		}
 
-		//执行BeanPostProcessor的后置处理
+		// 执行 BeanPostProcessor 的后置处理
 		wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		return wrappedBean;
 	}
@@ -266,7 +266,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 执行bean的初始化方法
+	 * 执行 bean 的初始化方法
 	 *
 	 * @param beanName
 	 * @param bean

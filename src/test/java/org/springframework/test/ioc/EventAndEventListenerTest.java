@@ -14,7 +14,6 @@ public class EventAndEventListenerTest {
 	public void testEventListener() throws Exception {
 		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:event-and-event-listener.xml");
 		applicationContext.publishEvent(new CustomEvent(applicationContext));
-
-		applicationContext.registerShutdownHook();//或者applicationContext.close()主动关闭容器;
+		applicationContext.registerShutdownHook(); // 或者 applicationContext.close() 主动关闭容器;
 	}
 }

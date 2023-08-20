@@ -49,7 +49,7 @@ public class CglibAopProxy implements AopProxy {
 			// 获取目标对象
 			Object target = advised.getTargetSource().getTarget();
 			Class<?> targetClass = target.getClass();
-			Object retVal = null;
+			Object retVal;
 			List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 			CglibMethodInvocation methodInvocation = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy);
 			if (chain == null || chain.isEmpty()) {

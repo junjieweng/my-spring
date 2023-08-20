@@ -35,7 +35,7 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
 				ObjectFactory<?> singletonFactory = singletonFactories.get(beanName);
 				if (singletonFactory != null) {
 					singletonObject = singletonFactory.getObject();
-					//从三级缓存放进二级缓存
+					// 从三级缓存放进二级缓存
 					earlySingletonObjects.put(beanName, singletonObject);
 					singletonFactories.remove(beanName);
 				}

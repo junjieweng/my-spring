@@ -16,7 +16,7 @@ public class StringToBooleanConverter implements GenericConverter {
 	}
 
 	@Override
-	public Object convert(Object source, Class sourceType, Class targetType) {
+	public Object convert(Object source, Class<?> sourceType, Class<?> targetType) {
 		return Boolean.valueOf((String) source);
 	}
 }

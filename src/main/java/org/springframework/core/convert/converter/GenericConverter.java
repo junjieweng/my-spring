@@ -10,9 +10,9 @@ public interface GenericConverter {
 
 	Set<ConvertiblePair> getConvertibleTypes();
 
-	Object convert(Object source, Class sourceType, Class targetType);
+	Object convert(Object source, Class<?> sourceType, Class<?> targetType);
 
-	public static final class ConvertiblePair {
+	final class ConvertiblePair {
 
 		private final Class<?> sourceType;
 

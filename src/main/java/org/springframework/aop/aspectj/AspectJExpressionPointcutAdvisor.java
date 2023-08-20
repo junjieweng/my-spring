@@ -5,7 +5,7 @@ import org.springframework.aop.Pointcut;
 import org.springframework.aop.PointcutAdvisor;
 
 /**
- * aspectJ表达式的advisor
+ * aspectJ 表达式的 advisor
  *
  * @author jjewng
  * @date 2023/05/28

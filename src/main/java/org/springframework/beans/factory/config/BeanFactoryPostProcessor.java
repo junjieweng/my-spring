@@ -4,7 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ConfigurableListableBeanFactory;
 
 /**
- * 允许自定义修改BeanDefinition的属性值
+ * 允许自定义修改 BeanDefinition 的属性值
  *
  * @author jjewng
  * @date 2023/05/28
