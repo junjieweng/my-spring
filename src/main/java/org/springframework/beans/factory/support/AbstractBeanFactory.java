@@ -54,14 +54,14 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 			FactoryBean<?> factoryBean = (FactoryBean<?>) beanInstance;
 			try {
 				if (factoryBean.isSingleton()) {
-					//singleton作用域bean，从缓存中获取
+					// singleton 作用域 bean，从缓存中获取
 					object = this.factoryBeanObjectCache.get(beanName);
 					if (object == null) {
 						object = factoryBean.getObject();
 						this.factoryBeanObjectCache.put(beanName, object);
 					}
 				} else {
-					//prototype作用域bean，新创建bean
+					// prototype 作用域 bean，新创建 bean
 					object = factoryBean.getObject();
 				}
 			} catch (Exception ex) {
@@ -90,7 +90,7 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 
 	@Override
 	public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
-		//有则覆盖
+		// 有则覆盖
 		this.beanPostProcessors.remove(beanPostProcessor);
 		this.beanPostProcessors.add(beanPostProcessor);
 	}

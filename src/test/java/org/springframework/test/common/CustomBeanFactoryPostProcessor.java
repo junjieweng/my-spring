@@ -18,7 +18,7 @@ public class CustomBeanFactoryPostProcessor implements BeanFactoryPostProcessor 
 		System.out.println("CustomBeanFactoryPostProcessor#postProcessBeanFactory");
 		BeanDefinition personBeanDefinition = beanFactory.getBeanDefinition("person");
 		PropertyValues propertyValues = personBeanDefinition.getPropertyValues();
-		//将person的name属性改为ivy
+		// 将 person 的 name 属性改为 ivy
 		propertyValues.addPropertyValue(new PropertyValue("name", "ivy"));
 	}
 }

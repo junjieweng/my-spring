@@ -61,45 +61,77 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
+			// Prepare this context for refreshing.
+			// TODO: 2023/8/21 创建和准备 Environment 对象
 			prepareRefresh();
 
+			// Tell the subclass to refresh the internal bean factory.
 			// 创建 BeanFactory，并加载 BeanDefinition
-			refreshBeanFactory();
-			ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// 添加 ApplicationContextAwareProcessor，让继承自 ApplicationContextAware 的 bean 能感知 bean
-			beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+			// Prepare the bean factory for use in this context.
+			prepareBeanFactory(beanFactory);
 
 			try {
-				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
+				// Allows post-processing of the bean factory in context subclasses.
+				// Web 环境使用
+				postProcessBeanFactory(beanFactory);
 
+				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
+				// Invoke factory processors registered as beans in the context.
 				// 在 bean 实例化之前，执行 BeanFactoryPostProcessor
 				invokeBeanFactoryPostProcessors(beanFactory);
 
+				// Register bean processors that intercept bean creation.
 				// BeanPostProcessor 需要提前于其他 bean 实例化之前注册
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
+				// TODO: 2023/8/21 国际化功能
+				// Initialize message source for this context.
+				initMessageSource();
+
+				// Initialize event multicaster for this context.
 				// 初始化事件发布器
 				initApplicationEventMulticaster();
 
+				// Initialize other special beans in specific context subclasses.
+				// SpringBoot WebServer
+				onRefresh();
+
+				// Check for listener beans and register them.
 				// 注册事件监听器
 				registerListeners();
 
+				// Instantiate all remaining (non-lazy-init) singletons.
 				// 注册类型转换器和提前实例化单例 bean
 				finishBeanFactoryInitialization(beanFactory);
 
+				// Last step: publish corresponding event.
 				// 发布容器刷新完成事件
 				finishRefresh();
 			}
-			catch (Exception ex) {
+			catch (BeansException ex) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Exception encountered during context initialization - " +
 							"cancelling refresh attempt: " + ex);
 				}
 				// TODO: 2023/7/31 执行销毁 bean 等操作
+				// Destroy already created singletons to avoid dangling resources.
+				destroyBeans();
+
+				// Reset 'active' flag.
+				cancelRefresh(ex);
+
+				// Propagate exception to caller.
 				throw ex;
-			} finally {
+			}
+
+			finally {
+				// Reset common introspection caches in Spring's core, since we
+				// might not ever need metadata for singleton beans anymore...
+				// TODO: 2023/8/21
+				resetCommonCaches();
 				contextRefresh.end();
 			}
 		}
@@ -107,6 +139,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	protected void prepareRefresh() {
 
+	}
+
+	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		refreshBeanFactory();
+		return getBeanFactory();
+	}
+
+	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// 添加 ApplicationContextAwareProcessor，让继承自 ApplicationContextAware 的 bean 能感知 bean
+		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+	}
+
+	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 	}
 
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
@@ -123,14 +168,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * 创建BeanFactory，并加载BeanDefinition
+	 * 创建 BeanFactory，并加载 BeanDefinition
 	 *
 	 * @throws BeansException
 	 */
 	protected abstract void refreshBeanFactory() throws BeansException;
 
 	/**
-	 * 在bean实例化之前，执行BeanFactoryPostProcessor
+	 * 在 bean 实例化之前，执行 BeanFactoryPostProcessor
 	 *
 	 * @param beanFactory
 	 */
@@ -142,7 +187,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * 注册BeanPostProcessor
+	 * 注册 BeanPostProcessor
 	 *
 	 * @param beanFactory
 	 */
@@ -153,13 +198,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 	}
 
+	protected void initMessageSource() {
+
+	}
+
 	/**
-	 * 初始化事件发布者
+	 * 初始化事件发布器
 	 */
 	protected void initApplicationEventMulticaster() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
 		beanFactory.addSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, applicationEventMulticaster);
+	}
+
+	protected void onRefresh() throws BeansException {
+		// For subclasses: do nothing by default.
 	}
 
 	/**
@@ -177,6 +230,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void finishRefresh() {
 		publishEvent(new ContextRefreshedEvent(this));
+	}
+
+	protected void cancelRefresh(BeansException ex) {
+
+	}
+
+	protected void resetCommonCaches() {
+
 	}
 
 	@Override
@@ -248,10 +309,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	protected void doClose() {
-		//发布容器关闭事件
+		// 发布容器关闭事件
 		publishEvent(new ContextClosedEvent(this));
 
-		//执行单例bean的销毁方法
+		// 执行单例 bean 的销毁方法
 		destroyBeans();
 	}
 

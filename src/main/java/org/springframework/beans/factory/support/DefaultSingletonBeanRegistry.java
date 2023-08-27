@@ -15,13 +15,19 @@ import org.springframework.beans.factory.config.SingletonBeanRegistry;
  */
 public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
 
-	//一级缓存
+	/**
+	 * 一级缓存
+	 */
 	private Map<String, Object> singletonObjects = new HashMap<>();
 
-	//二级缓存
+	/**
+	 * 二级缓存
+	 */
 	private Map<String, Object> earlySingletonObjects = new HashMap<>();
 
-	//三级缓存
+	/**
+	 * 三级缓存
+	 */
 	private Map<String, ObjectFactory<?>> singletonFactories = new HashMap<String, ObjectFactory<?>>();
 
 	private final Map<String, DisposableBean> disposableBeans = new HashMap<>();
